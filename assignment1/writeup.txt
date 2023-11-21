@@ -1,0 +1,53 @@
+CSE 158R - Web Mining and Recommender Systems
+
+Phu Dang
+
+Note: "game" and "item" will be used interchangeably.
+
+Played Prediction Task:
+
+Model description:
+To predict whether a user played a game, or not, I implemented a model
+that utilizes the structure of the data (50/50 of each outcome per user),
+uses user-to-user similarity comparison, item-to-item similarity comparison,
+and a popularity hierarchy to rank the relative "weight" of an item.
+
+Implementation outline:
+In order to rank the items per user in the test set, I implemented a points
+hierarchy to ranking the items. If an item's max item Jaccard similarity is 
+above a threshold, the item is assigned 0.5 points. If its max user Jaccard
+similarity is above a threshold, it is assigned another 0.5 points. If the 
+item is in the most popular items that account for 72% of total play time,
+the item is assigned 0.77 points. Since the dataset is severely popularity-based,
+I incorporated another set of conditions also based on popularity. If the item
+if among the top 12.5% most frequently appeared item in the test set, the item gets
+1.2 points, 1 point for next 12.5%, 0.8 points for next 10%, 0.6 points for next
+15%, 0.4 points for next 35%, and 0.2 points for last 15%. 
+
+Finally, once every item associated with a user is ranked, the top half is
+predicted as "played", and the rest is not played.
+
+Hours Played Prediction Task:
+
+Model and implementation description:
+To predict the log-transformed time a user played a game, I implemented an 
+ensemble model that uses both coordinate descent and gradient descent, with both
+biases (betaU and betaI) and latent factors (gammaU and gammaI) from scratch. 
+I first initialized bUs and bIs at a "warm" starting value, then performed 
+coordinate descent to find the optimal alpha, betaUs, and betaIs with early 
+stopping incorporated (validation performance stop changing). Latent factors are 
+then added to the model and learned with gradient descent, with the final 
+prediction formula being: 
+
+    prediction(u,i) = alpha + betaU[u] + betaI[i] + (gammaU[u]*gammaI[i])
+
+I also initialized gammaUs and gammaIs at a "warm" starting value, mainly because
+I am not waiting convergence, but rather early stopping. Parameters alpha, bUs,
+and bIs were also trained along with gammas during gradient descent; however,
+when making predictions, the original, optimal alpha, bUs, and bIs from
+coordinate descent seem to be more generalizable than their final values after
+gradient descent. I think this is likely due to overfitting when these values
+are "further trained" in gradient descent.
+
+Final notes: the "warm" starting values mentioned above were identified through
+manual grid search over a series of models/values.
